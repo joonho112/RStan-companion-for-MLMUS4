@@ -1,0 +1,150 @@
+---
+title: "Chapter 1. Review of Linear Regression"
+author: 
+- JoonHo Lee (jlee296@ua.edu)
+- Mehdi Rajeb
+date: "October 5, 2021"
+output:
+  html_document: 
+    css: styles.css
+    fig_caption: yes
+    highlight: haddock
+    number_sections: yes
+    theme: readable
+    toc: yes
+    toc_depth: 1
+  tufte::tufte_html:
+    number_sections: yes
+    toc: true
+    toc_depth: 2
+  pdf_document:
+    toc: no
+    toc_depth: '3'
+    number_sections: yes
+bibliography: bibliography.bib
+---
+
+```{r basic_setup, include=FALSE}
+### Set working directory and data directory 
+work_dir <- file.path(path.expand("~"), 
+                      "Documents",
+                      "RStan-companion-for-MLMUS4") 
+
+data_dir <- file.path(work_dir, "datasets")
+
+setwd(work_dir)
+
+### Set R Markdown options
+knitr::opts_chunk$set(echo = TRUE, warnings = FALSE, message = FALSE)
+
+### Call libraries
+library(tidyverse)
+library(haven)
+library(broom)
+library(janitor)
+
+### Define manual palettes
+color_palette <- c("firebrick1", "dodgerblue1", "forestgreen", "darkorchid1",
+                   "darkgoldenrod1", "blue", "green", "purple", "gold", "red")    
+shape_palette <- c(16, 17, 15, 18, 1, 2, 0, 5, 6, 4, 3, 8, 10, 7, 9) 
+```
+
+
+# Introduction
+
+In this chapter, we review the statistical models underlying independent-samples $t$ tests, analysis of variance (ANOVA), analysis of covariance (ANCOVA), simple
+regression, and multiple regression. We formulate all these models as linear regression
+models.
+
+
+# Is there gender discrimination in faculty salaries?
+
+The data considered here are a subset of the data provided by DeMaris, comprising $n = 514$ faculty members, excluding faculty from the Fireland campus, nonprofessors
+(instructors/lecturers), those not on graduate faculty, and three professors hired
+as Ohio Board of Regents Eminent Scholars. We will use the following variables:
+
+- `salary`: academic year (9-month) salary in U.S. dollars
+- `male`: gender (1 = male; 0 = female)
+- `market`: marketability of academic discipline, defined as the ratio of the national average salary paid in the discipline to the national average across all disciplines
+- `yearsdg`: time since degree (in years)
+- `rank`: academic rank (1 = assistant professor; 2 = associate professor; 3 = full professor)
+
+We start by reading the data into R:
+
+```{r}
+# Import faculty dataset
+load_path <- file.path(data_dir, "faculty.dta")
+df <- read_dta(load_path)
+df
+
+# Covert numerics into factors
+df <- df %>%
+  mutate(
+    rank = factor(rank, 
+                  levels = c(1, 2, 3), 
+                  labels = c("Assistant", "Associate", "Full")), 
+    male = factor(male, 
+                  levels = c(0, 1), 
+                  labels = c("Women", "Men"))
+  )
+```
+
+
+# Independent-samples $t$ test
+
+```{r}
+df_sum <- df %>%
+  group_by(male) %>%
+  summarise(
+    Mean = mean(salary, na.rm = TRUE), 
+    SD = sd(salary, na.rm = TRUE), 
+    N = n()
+  )
+
+df_sum
+
+# df_total <- df %>%
+#     summarise(
+#     Mean = mean(salary), 
+#     SD = sd(salary), 
+#     N = n()
+#   ) %>%
+#   add_column(male = "Total", .before = "Mean")
+# 
+# df_sum
+# df_total
+
+```
+
+
+```{r}
+df %>%
+  ggplot(aes(y = salary)) + 
+  geom_boxplot() + 
+  facet_wrap(. ~ male) +
+  theme_bw() + 
+  labs(y = "Academic Salary (in dollars)")
+```
+
+
+
+```{r}
+t_test <- t.test(salary ~ male, df)
+t_test
+broom::tidy(t_test)
+```
+
+
+
+
+
+
+# References
+
+
+
+
+
+
+
+
